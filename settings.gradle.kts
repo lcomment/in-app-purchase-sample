@@ -13,7 +13,7 @@ plugins {
 
 module(name = ":aos", "iap-aos")
 module(name = ":ios", "iap-ios")
-module(name = ":integration", "iap-integration")
+module(name = ":domain", "iap-domain")
 
 dependencyResolutionManagement {
     versionCatalogs {
