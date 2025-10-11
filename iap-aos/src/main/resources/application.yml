@@ -1,0 +1,29 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: iap-aos-service
+
+# Google Play Configuration (for development/testing)
+google:
+  play:
+    service-account-key: |
+      {
+        "type": "service_account",
+        "project_id": "mock-project-id",
+        "private_key_id": "mock-private-key-id",
+        "private_key": "-----BEGIN PRIVATE KEY-----\nMOCK_PRIVATE_KEY_CONTENT\n-----END PRIVATE KEY-----\n",
+        "client_email": "mock-service-account@mock-project.iam.gserviceaccount.com",
+        "client_id": "mock-client-id",
+        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+        "token_uri": "https://oauth2.googleapis.com/token",
+        "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+        "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/mock-service-account%40mock-project.iam.gserviceaccount.com"
+      }
+    application-name: "IAP-AOS-Sample"
+
+logging:
+  level:
+    com.example: DEBUG
+    org.springframework.web: DEBUG
