@@ -1,0 +1,14 @@
+dependencies {
+    implementation(libs.spring.boot.starter.web)
+
+    testImplementation(libs.spring.boot.starter.test)
+    testImplementation(libs.kotest.junit)
+}
+
+tasks.bootJar {
+    enabled = true
+}
+
+tasks.getByName("jar") {
+    enabled = false
+}
