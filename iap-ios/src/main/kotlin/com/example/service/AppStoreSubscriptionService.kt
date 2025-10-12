@@ -22,7 +22,8 @@ class AppStoreSubscriptionService(
     private val appStoreConfig: AppStoreConfig,
     private val objectMapper: ObjectMapper,
     private val subscriptionRepository: IOSSubscriptionRepository,
-    private val paymentRepository: IOSPaymentRepository
+    private val paymentRepository: IOSPaymentRepository,
+    private val paymentCompletionService: AppStorePaymentCompletionService
 ) {
 
     private val restClient = RestClient.builder()
@@ -250,7 +251,29 @@ class AppStoreSubscriptionService(
 
         // 결제 기록 생성 및 저장
         val payment = createPaymentFromSubscription(savedSubscription, request)
-        paymentRepository.save(payment)
+        val savedPayment = paymentRepository.save(payment)
+
+        // 지급 완료 처리 (서버 측에서 상태 기록, 클라이언트에서 finishTransaction 필요)
+        val completionRequest = SubscriptionCompletionRequest(
+            platform = Platform.IOS,
+            subscriptionId = request.productId,
+            purchaseToken = request.transactionId,
+            originalTransactionId = request.originalTransactionId,
+            userId = request.userId
+        )
+        
+        val completionResult = paymentCompletionService.completeSubscriptionPayment(completionRequest)
+        
+        if (completionResult.success) {
+            // 서버 측에서는 완료 상태로 기록
+            val acknowledgedPayment = savedPayment.acknowledge()
+            paymentRepository.save(acknowledgedPayment)
+            
+            println("Subscription purchase completed on server side: ${savedSubscription.id}")
+            println("Client should call finishTransaction for originalTransactionId: ${request.originalTransactionId}")
+        } else {
+            println("Failed to mark subscription as completed: ${savedSubscription.id} - ${completionResult.message}")
+        }
 
         return savedSubscription
     }

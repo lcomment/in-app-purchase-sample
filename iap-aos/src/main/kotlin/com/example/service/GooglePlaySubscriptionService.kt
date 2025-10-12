@@ -18,7 +18,8 @@ import java.util.*
 class GooglePlaySubscriptionService(
     private val androidPublisher: AndroidPublisher,
     private val subscriptionRepository: SubscriptionRepository,
-    private val paymentRepository: PaymentRepository
+    private val paymentRepository: PaymentRepository,
+    private val paymentCompletionService: GooglePlayPaymentCompletionService
 ) {
 
     fun verifySubscription(request: SubscriptionVerificationRequest): SubscriptionVerificationResponse {
@@ -151,7 +152,28 @@ class GooglePlaySubscriptionService(
 
         // 결제 기록 생성 및 저장
         val payment = createPaymentFromSubscription(savedSubscription, request)
-        paymentRepository.save(payment)
+        val savedPayment = paymentRepository.save(payment)
+
+        // 지급 완료 처리 (Acknowledge)
+        val completionRequest = SubscriptionCompletionRequest(
+            platform = Platform.AOS,
+            packageName = request.packageName,
+            subscriptionId = request.subscriptionId,
+            purchaseToken = request.purchaseToken,
+            userId = request.userId
+        )
+        
+        val completionResult = paymentCompletionService.completeSubscriptionPayment(completionRequest)
+        
+        if (completionResult.success) {
+            // 결제 상태를 Acknowledged로 업데이트
+            val acknowledgedPayment = savedPayment.acknowledge()
+            paymentRepository.save(acknowledgedPayment)
+            
+            println("Successfully acknowledged subscription: ${savedSubscription.id}")
+        } else {
+            println("Failed to acknowledge subscription: ${savedSubscription.id} - ${completionResult.message}")
+        }
 
         return savedSubscription
     }
