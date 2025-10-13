@@ -1,0 +1,48 @@
+spring:
+  application:
+    name: iap-integration
+  profiles:
+    active: development
+
+server:
+  port: 8082
+
+# Google Play 설정
+app:
+  google-play:
+    service-account-key: ${GOOGLE_PLAY_SERVICE_ACCOUNT_KEY:dummy-key}
+    application-name: ${GOOGLE_PLAY_APPLICATION_NAME:IAP-Integration}
+  
+  # App Store 설정
+  appstore:
+    jwt-token: ${APP_STORE_JWT_TOKEN:dummy-token}
+    environment: ${APP_STORE_ENVIRONMENT:sandbox}
+
+# 로깅 설정
+logging:
+  level:
+    com.example.integration: INFO
+    org.springframework.scheduling: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+---
+spring:
+  config:
+    activate:
+      on-profile: development
+
+logging:
+  level:
+    com.example.integration: DEBUG
+
+---
+spring:
+  config:
+    activate:
+      on-profile: production
+
+logging:
+  level:
+    com.example.integration: WARN
+    root: INFO
