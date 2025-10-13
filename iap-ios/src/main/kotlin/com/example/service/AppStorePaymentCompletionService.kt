@@ -1,6 +1,9 @@
 package com.example.service
 
 import com.example.domain.*
+import com.example.domain.payment.completion.*
+import com.example.domain.payment.completion.requests.*
+import com.example.domain.payment.completion.results.*
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 

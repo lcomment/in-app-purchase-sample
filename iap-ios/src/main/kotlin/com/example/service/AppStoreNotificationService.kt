@@ -1,8 +1,10 @@
 package com.example.service
 
 import com.example.domain.*
+import com.example.domain.payment.event.*
 import com.example.dto.*
 import com.example.repository.IOSPaymentRepository
+import com.example.repository.IOSPaymentEventRepository
 import com.example.repository.IOSSubscriptionRepository
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.stereotype.Service
@@ -15,6 +17,7 @@ import java.util.*
 class AppStoreNotificationService(
     private val subscriptionRepository: IOSSubscriptionRepository,
     private val paymentRepository: IOSPaymentRepository,
+    private val paymentEventRepository: IOSPaymentEventRepository,
     private val appStoreSubscriptionService: AppStoreSubscriptionService,
     private val objectMapper: ObjectMapper
 ) {
@@ -318,6 +321,8 @@ class AppStoreNotificationService(
             createdAt = LocalDateTime.now()
         )
         
-        println("PaymentEvent created: ${paymentEvent.eventType} for subscription: $subscriptionId")
+        // PaymentEvent 저장
+        paymentEventRepository.save(paymentEvent)
+        println("PaymentEvent saved: ${paymentEvent.eventType} for subscription: $subscriptionId")
     }
 }

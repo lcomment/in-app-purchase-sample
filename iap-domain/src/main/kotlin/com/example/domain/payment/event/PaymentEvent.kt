@@ -1,18 +1,7 @@
-package com.example.domain
+package com.example.domain.payment.event
 
+import com.example.domain.Platform
 import java.time.LocalDateTime
-
-enum class PaymentEventType {
-    PURCHASE,
-    RENEWAL,
-    CANCELLATION,
-    REFUND,
-    EXPIRATION,
-    GRACE_PERIOD_START,
-    GRACE_PERIOD_END,
-    PAUSE,
-    RESUME
-}
 
 data class PaymentEvent(
     val id: String,

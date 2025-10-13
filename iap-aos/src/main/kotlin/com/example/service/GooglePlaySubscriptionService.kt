@@ -1,6 +1,7 @@
 package com.example.service
 
 import com.example.domain.*
+import com.example.domain.payment.completion.requests.*
 import com.example.dto.SubscriptionVerificationRequest
 import com.example.dto.SubscriptionVerificationResponse
 import com.example.repository.PaymentRepository

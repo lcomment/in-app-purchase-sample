@@ -2,6 +2,7 @@ package com.example.service
 
 import com.example.config.AppStoreConfig
 import com.example.domain.*
+import com.example.domain.payment.completion.requests.*
 import com.example.dto.IOSSubscriptionVerificationRequest
 import com.example.dto.IOSSubscriptionVerificationResponse
 import com.example.repository.IOSPaymentRepository

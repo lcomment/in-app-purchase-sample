@@ -1,8 +1,10 @@
 package com.example.service
 
 import com.example.domain.*
+import com.example.domain.payment.event.*
 import com.example.dto.*
 import com.example.repository.PaymentRepository
+import com.example.repository.PaymentEventRepository
 import com.example.repository.SubscriptionRepository
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.stereotype.Service
@@ -15,6 +17,7 @@ import java.util.*
 class RTDNEventService(
     private val subscriptionRepository: SubscriptionRepository,
     private val paymentRepository: PaymentRepository,
+    private val paymentEventRepository: PaymentEventRepository,
     private val googlePlaySubscriptionService: GooglePlaySubscriptionService,
     private val objectMapper: ObjectMapper
 ) {
@@ -246,7 +249,8 @@ class RTDNEventService(
             createdAt = LocalDateTime.now()
         )
         
-        // PaymentEvent Repository가 있다면 저장
-        println("PaymentEvent created: ${paymentEvent.eventType} for subscription: $subscriptionId")
+        // PaymentEvent 저장
+        paymentEventRepository.save(paymentEvent)
+        println("PaymentEvent saved: ${paymentEvent.eventType} for subscription: $subscriptionId")
     }
 }
