@@ -5,6 +5,8 @@ import com.example.domain.settlement.reconciliation.ReconciliationStatus
 import com.example.domain.payment.event.*
 import com.example.domain.settlement.*
 import com.example.domain.settlement.reconciliation.*
+import com.example.service.reconciliation.ReconciliationEngine
+import com.example.service.reconciliation.results.ReconciliationProcessResult
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -32,7 +34,7 @@ class ReconciliationOrchestrator(
      */
     fun processAllPlatformsReconciliation(
         date: LocalDate,
-        settlementCollectionService: DailySettlementCollectionService,
+        settlementCollectionService: com.example.service.settlement.DailySettlementCollectionService,
         googlePlayEventRepository: Any?, // PaymentEventRepository
         appStoreEventRepository: Any?     // IOSPaymentEventRepository
     ): CombinedReconciliationResult {

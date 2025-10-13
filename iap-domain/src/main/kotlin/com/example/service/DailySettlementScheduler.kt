@@ -2,6 +2,12 @@ package com.example.service
 
 import com.example.domain.Platform
 import com.example.domain.settlement.reconciliation.ReconciliationStatus
+import com.example.service.alert.AlertNotificationService
+import com.example.service.alert.requests.NotificationRequest
+import com.example.service.alert.configuration.AlertChannel
+import com.example.service.alert.priority.NotificationPriority
+import com.example.service.reconciliation.results.ReconciliationProcessResult
+import com.example.service.settlement.results.SettlementPeriodStatistics
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import java.time.LocalDate
@@ -23,7 +29,7 @@ import java.util.concurrent.Executors
  */
 @Service
 class DailySettlementScheduler(
-    private val dailySettlementCollectionService: DailySettlementCollectionService,
+    private val dailySettlementCollectionService: com.example.service.settlement.DailySettlementCollectionService,
     private val reconciliationOrchestrator: ReconciliationOrchestrator,
     private val discrepancyDetectionService: DiscrepancyDetectionService,
     private val alertNotificationService: AlertNotificationService

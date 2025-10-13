@@ -3,6 +3,7 @@ package com.example.service
 import com.example.domain.*
 import com.example.domain.settlement.*
 import com.example.domain.settlement.reconciliation.*
+import com.example.service.reconciliation.results.ReconciliationProcessResult
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.time.LocalDate
