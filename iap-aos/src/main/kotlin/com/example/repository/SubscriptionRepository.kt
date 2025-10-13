@@ -30,6 +30,10 @@ class SubscriptionRepository {
         return subscriptions.values.find { it.purchaseToken == purchaseToken }
     }
     
+    fun findByTransactionId(transactionId: String): Subscription? {
+        return subscriptions.values.find { it.purchaseToken == transactionId }
+    }
+    
     fun existsByPurchaseToken(purchaseToken: String): Boolean {
         return subscriptions.values.any { it.purchaseToken == purchaseToken }
     }
