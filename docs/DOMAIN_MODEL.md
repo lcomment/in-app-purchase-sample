@@ -201,23 +201,82 @@ data class PaymentEvent(
 
 ---
 
-### 8. Refund (환불 정보)
+### 8. Refund (환불 정보) - Platform-Specific Implementation
+
+플랫폼별 환불 처리는 각각의 모듈에서 독립적으로 구현됩니다:
+
+#### Google Play 환불 (iap-aos 모듈)
 
 ```kotlin
-data class Refund(
-    val id: String,                     // 환불 ID
-    val paymentId: String,              // 원본 결제 ID
-    val subscriptionId: String,         // 구독 ID
-    val userId: String,                 // 사용자 ID
-    val amount: BigDecimal,             // 환불 금액
-    val currency: String,               // 통화
-    val reason: String,                 // 환불 사유
-    val platform: Platform,            // 플랫폼
-    val platformRefundId: String? = null, // 플랫폼별 환불 ID
-    val refundDate: LocalDateTime,      // 환불일
-    val createdAt: LocalDateTime = LocalDateTime.now()
+data class GooglePlayRefundRequest(
+    val id: String = UUID.randomUUID().toString(),
+    val packageName: String,
+    val token: String,
+    val productId: String?,
+    val type: GooglePlayRefundType,
+    val amount: BigDecimal?,
+    val currency: String = "USD",
+    val reason: String?,
+    val customerNote: String?
+)
+
+enum class GooglePlayRefundType {
+    SUBSCRIPTION,
+    IN_APP_PURCHASE
+}
+
+data class GooglePlayRefundResult(
+    val success: Boolean,
+    val refundId: String?,
+    val refundAmount: BigDecimal? = null,
+    val currency: String? = null,
+    val error: String? = null,
+    val timestamp: LocalDateTime,
+    val metadata: Map<String, String> = emptyMap()
 )
 ```
+
+#### App Store 환불 (iap-ios 모듈)
+
+```kotlin
+data class AppStoreRefundRequest(
+    val id: String = UUID.randomUUID().toString(),
+    val originalTransactionId: String,
+    val type: AppStoreRefundType,
+    val reason: AppStoreRefundReason,
+    val amount: BigDecimal?,
+    val currency: String = "USD",
+    val customerNote: String?
+)
+
+enum class AppStoreRefundType {
+    SUBSCRIPTION,
+    IN_APP_PURCHASE
+}
+
+enum class AppStoreRefundReason(val code: String, val description: String) {
+    CUSTOMER_REQUEST("0", "고객 요청"),
+    TECHNICAL_ISSUE("1", "기술적 문제"),
+    BILLING_ERROR("2", "결제 오류"),
+    FRAUD_PREVENTION("3", "사기 방지"),
+    OTHER("99", "기타")
+}
+
+data class AppStoreRefundResult(
+    val success: Boolean,
+    val refundRequestId: String?,
+    val refundAmount: BigDecimal? = null,
+    val currency: String? = null,
+    val error: String? = null,
+    val timestamp: LocalDateTime,
+    val status: String? = null,
+    val estimatedProcessingTime: String? = null
+)
+```
+
+**플랫폼별 환불 서비스**:
+- **GooglePlayRefundService** (`iap-aos` 모듈): Google Play Developer API 사용
+- **AppStoreRefundService** (`iap-ios` 모듈): App Store Server API 사용
 
 ---
 
@@ -253,8 +312,9 @@ data class SubscriptionHistory(
                                    │ 1:1
                                    ▼
                           ┌─────────────────┐
-                          │     Refund      │
-                          │                 │
+                          │Platform-Specific│
+                          │  Refund Models  │
+                          │  (AOS/iOS 모듈) │
                           └─────────────────┘
 
 ┌─────────────────┐       ┌─────────────────┐
@@ -287,11 +347,13 @@ data class SubscriptionHistory(
 - **검증 키**: `purchaseToken`
 - **API**: Google Play Developer API `purchases.subscriptionsv2.get`
 - **RTDN**: Google Pub/Sub 또는 HTTP POST webhook
+- **환불 처리**: `GooglePlayRefundService` (iap-aos 모듈)
 
 #### iOS (App Store)
 - **검증 키**: `transactionId` + `originalTransactionId`
 - **API**: App Store Connect API `/inApps/v1/transactions/{transactionId}`
 - **Server Notifications**: HTTP POST webhook
+- **환불 처리**: `AppStoreRefundService` (iap-ios 모듈)
 
 ## 사용 예시
 
