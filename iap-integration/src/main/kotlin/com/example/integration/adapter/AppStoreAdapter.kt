@@ -207,38 +207,53 @@ class AppStoreAdapter(
     override fun getSupportedPlatform(): Platform = Platform.APP_STORE
     
     /**
-     * App Store 거래 데이터를 도메인 모델로 변환
+     * App Store 거래 데이터를 구독 상품으로 변환 (새로운 도메인 모델)
      */
     private fun mapToSubscription(
-        transactionInfo: JsonNode,
+        @Suppress("UNUSED_PARAMETER") transactionInfo: JsonNode,
         productId: String,
-        purchaseToken: String
+        @Suppress("UNUSED_PARAMETER") purchaseToken: String
     ): Subscription {
-        
-        val signedTransactionInfo = transactionInfo.get("signedTransactionInfo")?.asText()
-        // 실제로는 JWT 토큰을 디코딩해야 하지만, 여기서는 예시로 기본값 사용
-        
-        val expiryDate = try {
-            // 실제로는 JWT에서 expiresDate 필드를 파싱해야 함
-            LocalDateTime.now().plusDays(30)
-        } catch (e: Exception) {
-            LocalDateTime.now().plusDays(30)
+        // productId를 기반으로 구독 상품 정보를 반환
+        // 실제로는 DB에서 productId로 조회해야 하지만, 여기서는 예시 데이터 반환
+        return when (productId) {
+            "premium_monthly" -> Subscription(
+                id = 1,
+                name = "프리미엄 월간 구독",
+                pricePerMonth = 9990,
+                description = "모든 프리미엄 기능 이용 가능",
+                rentalPeriod = 30,
+                subscriptionPeriod = 30,
+                seriesRentalCountPerDay = 10,
+                questCount = 100,
+                reward = 1000,
+                displayable = true
+            )
+            "premium_yearly" -> Subscription(
+                id = 2,
+                name = "프리미엄 연간 구독",
+                pricePerMonth = 8330,
+                description = "연간 구독으로 더 저렴하게",
+                rentalPeriod = 365,
+                subscriptionPeriod = 365,
+                seriesRentalCountPerDay = 15,
+                questCount = 1200,
+                reward = 12000,
+                displayable = true
+            )
+            else -> Subscription(
+                id = 0,
+                name = "기본 구독",
+                pricePerMonth = 4990,
+                description = "기본 기능 이용 가능",
+                rentalPeriod = 30,
+                subscriptionPeriod = 30,
+                seriesRentalCountPerDay = 5,
+                questCount = 50,
+                reward = 500,
+                displayable = true
+            )
         }
-        
-        return Subscription(
-            id = UUID.randomUUID().toString(),
-            userId = "", // 사용자 ID는 별도로 제공되어야 함
-            platform = Platform.APP_STORE,
-            productId = productId,
-            purchaseToken = purchaseToken,
-            orderId = purchaseToken, // App Store에서는 originalTransactionId를 사용
-            status = SubscriptionStatus.ACTIVE, // 실제로는 JWT에서 파싱
-            startDate = LocalDateTime.now(),
-            expiryDate = expiryDate,
-            autoRenewing = true, // 실제로는 JWT에서 파싱
-            price = BigDecimal("9.99"), // 실제로는 구독 상품 정보에서 가져와야 함
-            currency = "USD"
-        )
     }
     
     /**

@@ -184,7 +184,7 @@ class GooglePlayAdapter(
             
             // Google Play Developer API 호출 - orders.refund
             // https://developers.google.com/android-publisher/api-ref/rest/v3/orders/refund
-            val response = restClient.post()
+            restClient.post()
                 .uri("/androidpublisher/v3/applications/{packageName}/orders/{orderId}:refund?revoke=true", 
                      packageName, purchaseToken)
                 .retrieve()
@@ -215,48 +215,53 @@ class GooglePlayAdapter(
     override fun getSupportedPlatform(): Platform = Platform.GOOGLE_PLAY
     
     /**
-     * Google Play 구독 데이터를 도메인 모델로 변환
+     * Google Play 구독 데이터를 구독 상품으로 변환 (새로운 도메인 모델)
      */
     private fun mapToSubscription(
-        subscriptionData: JsonNode,
+        @Suppress("UNUSED_PARAMETER") subscriptionData: JsonNode,
         productId: String,
-        purchaseToken: String
+        @Suppress("UNUSED_PARAMETER") purchaseToken: String
     ): Subscription {
-        val subscriptionState = subscriptionData.get("subscriptionState")?.asText()
-        val startTime = subscriptionData.get("startTime")?.asText()?.let { 
-            parseIsoTimestamp(it) 
-        } ?: LocalDateTime.now()
-        
-        val latestOrderId = subscriptionData.get("latestOrderId")?.asText() ?: ""
-        
-        // lineItems에서 만료일과 자동갱신 정보 추출
-        val lineItems = subscriptionData.get("lineItems")
-        val firstLineItem = if (lineItems != null && lineItems.isArray && lineItems.size() > 0) {
-            lineItems.get(0)
-        } else null
-        
-        val expiryTime = firstLineItem?.get("expiryTime")?.asText()?.let {
-            parseIsoTimestamp(it)
-        } ?: LocalDateTime.now().plusDays(30)
-        
-        val autoRenewing = firstLineItem?.get("autoRenewingPlan")?.get("autoRenewEnabled")?.asBoolean() ?: false
-        
-        val status = mapGooglePlayStatusToOurStatus(subscriptionState)
-        
-        return Subscription(
-            id = UUID.randomUUID().toString(),
-            userId = "", // 사용자 ID는 별도로 제공되어야 함
-            platform = Platform.GOOGLE_PLAY,
-            productId = productId,
-            purchaseToken = purchaseToken,
-            orderId = latestOrderId,
-            status = status,
-            startDate = startTime,
-            expiryDate = expiryTime,
-            autoRenewing = autoRenewing,
-            price = BigDecimal("9.99"), // 실제로는 구독 상품 정보에서 가져와야 함
-            currency = "USD"
-        )
+        // productId를 기반으로 구독 상품 정보를 반환
+        // 실제로는 DB에서 productId로 조회해야 하지만, 여기서는 예시 데이터 반환
+        return when (productId) {
+            "premium_monthly" -> Subscription(
+                id = 1,
+                name = "프리미엄 월간 구독",
+                pricePerMonth = 9990,
+                description = "모든 프리미엄 기능 이용 가능",
+                rentalPeriod = 30,
+                subscriptionPeriod = 30,
+                seriesRentalCountPerDay = 10,
+                questCount = 100,
+                reward = 1000,
+                displayable = true
+            )
+            "premium_yearly" -> Subscription(
+                id = 2,
+                name = "프리미엄 연간 구독",
+                pricePerMonth = 8330,
+                description = "연간 구독으로 더 저렴하게",
+                rentalPeriod = 365,
+                subscriptionPeriod = 365,
+                seriesRentalCountPerDay = 15,
+                questCount = 1200,
+                reward = 12000,
+                displayable = true
+            )
+            else -> Subscription(
+                id = 0,
+                name = "기본 구독",
+                pricePerMonth = 4990,
+                description = "기본 기능 이용 가능",
+                rentalPeriod = 30,
+                subscriptionPeriod = 30,
+                seriesRentalCountPerDay = 5,
+                questCount = 50,
+                reward = 500,
+                displayable = true
+            )
+        }
     }
     
     /**

@@ -4,8 +4,8 @@ import com.example.integration.application.port.`in`.PaymentCompletionUseCase
 import com.example.integration.application.port.`in`.PaymentCompletionRequest
 import com.example.integration.application.port.`in`.PaymentCompletionResult
 import com.example.integration.application.port.out.PaymentRepositoryPort
-import com.example.integration.domain.Payment
-import com.example.integration.domain.PaymentStatus
+import com.example.integration.application.port.out.MemberSubscriptionRepositoryPort
+import com.example.integration.domain.*
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -19,7 +19,8 @@ import java.util.*
 @Transactional
 class PaymentCompletionService(
     private val platformAdapterFactory: PlatformAdapterFactory,
-    private val paymentRepository: PaymentRepositoryPort
+    private val paymentRepository: PaymentRepositoryPort,
+    private val memberSubscriptionRepository: MemberSubscriptionRepositoryPort
 ) : PaymentCompletionUseCase {
     
     private val logger = LoggerFactory.getLogger(PaymentCompletionService::class.java)
@@ -28,6 +29,29 @@ class PaymentCompletionService(
         logger.info("Completing subscription payment: platform=${request.platform}, productId=${request.productId}")
         
         try {
+            // 회원 구독 정보 조회
+            val memberSubscription = memberSubscriptionRepository.findByPurchaseToken(request.purchaseToken)
+            if (memberSubscription == null) {
+                logger.error("MemberSubscription not found for token: ${request.purchaseToken}")
+                return PaymentCompletionResult(
+                    success = false,
+                    paymentId = null,
+                    completedAt = null,
+                    errorMessage = "결제 검증이 선행되지 않았거나 구독 정보를 찾을 수 없습니다"
+                )
+            }
+            
+            // 이미 활성화된 구독인지 확인
+            if (memberSubscription.status == MemberSubscriptionStatus.ACTIVE) {
+                logger.warn("MemberSubscription already active: ${memberSubscription.id}")
+                return PaymentCompletionResult(
+                    success = true,
+                    paymentId = memberSubscription.payment?.id,
+                    completedAt = LocalDateTime.now(),
+                    errorMessage = "이미 활성화된 구독입니다"
+                )
+            }
+            
             // 기존 결제 정보 조회
             val existingPayment = paymentRepository.findByPurchaseToken(request.purchaseToken)
             if (existingPayment?.acknowledgmentState == true) {
@@ -85,6 +109,15 @@ class PaymentCompletionService(
                 )
                 paymentRepository.save(newPayment)
             }
+            
+            // 회원 구독 상태를 ACTIVE로 업데이트
+            val activeMemberSubscription = memberSubscription.copy(
+                payment = updatedPayment,
+                status = MemberSubscriptionStatus.ACTIVE // BEFORE_PAID -> ACTIVE로 변경
+            )
+            
+            val savedMemberSubscription = memberSubscriptionRepository.save(activeMemberSubscription)
+            logger.info("MemberSubscription activated: id=${savedMemberSubscription.id}, memberId=${savedMemberSubscription.member.id}")
             
             logger.info("Payment completion successful: paymentId=${updatedPayment.id}")
             

@@ -41,7 +41,7 @@ class PaymentController(
         
         val response = PaymentVerificationResponseDto(
             success = result.isValid,
-            subscriptionId = result.subscription?.id,
+            subscriptionId = result.subscription?.id?.toString(),
             message = result.errorMessage ?: "Verification completed",
             platformData = result.platformData
         )
