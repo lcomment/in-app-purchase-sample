@@ -105,9 +105,9 @@ class GooglePlayAdapter(
             logger.info("Acknowledging Google Play subscription: productId=$productId, packageName=$packageName")
             
             // Google Play Developer API 호출 - 구독 확인
-            // https://developers.google.com/android-publisher/api-ref/rest/v3/purchases.subscriptionsv2/acknowledge
+            // https://developers.google.com/android-publisher/api-ref/rest/v3/purchases.subscriptions/acknowledge
             restClient.post()
-                .uri("/androidpublisher/v3/applications/{packageName}/purchases/subscriptionsv2/tokens/{token}:acknowledge", 
+                .uri("/androidpublisher/v3/applications/{packageName}/purchases/subscriptions/tokens/{token}:acknowledge",
                      packageName, purchaseToken)
                 .retrieve()
                 .body(String::class.java)
